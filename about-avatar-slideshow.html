@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Avatar Slideshow</title>
+    <style>
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            padding: 20px;
+            font-size: 18px;
+            text-align: left;
+            width: 100%;
+            max-width: 800px;
+            margin-top: 20px;
+        }
+
+        .question {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            white-space: nowrap;
+        }
+
+        input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        .file-upload {
+            display: none;
+            margin-top: 10px;
+        }
+
+        #snapshot-zip {
+            display: inline-block;
+            font-size: 16px;
+            padding: 10px 20px;
+            border: 2px solid #000;
+            background-color: #fff;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        #snapshot-zip:hover {
+            background-color: #000;
+            color: #fff;
+        }
+
+        #save-settings {
+            display: block;
+            font-size: 16px;
+            padding: 10px 20px;
+            border: 2px solid #000;
+            background-color: #fff;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 20px;
+            text-align: center;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #save-settings:hover {
+            background-color: #000;
+            color: #fff;
+        }
+
+        .definitions {
+            margin-top: 20px;
+        }
+
+        .definition {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="definitions">
+            <div class="definition"><b>Custom List</b> - Paste in a list of ENS names to create the avatar slideshow
+                from. You should probably use the "Review Avatars" tab to review them first before starting the
+                slideshow.</div>
+            <div class="definition"><b>Custom List (prefetch all)</b> - The same as "Custom List" except this prefetches
+                the entire avatar image set once the slideshow begins. This is probably better for spotty network
+                connectivity.</div>
+            <div class="definition"><b>Review Avatars</b> - Paste in a list of ENS names to review their avatars. Check
+                if the avatar record is not set, the image broken, or too degen for a publicly shown slideshow.</div>
+            <div class="definition"><b>CTRL-ALT-H</b> - Use this hotkey to hide the top navbar. This way it will be
+                invisible during the display of the slideshow of avatars. The hotkey can be used to unhide the top bar
+                as well.</div>
+            <div class="definition"><b>F11</b> - On most systems, you can press F11 on the keyboard to display the
+                browser window in fullscreen mode so that there is no menu, address bar, etc. The slideshow should then
+                take up the entire screen (if you've used CTRL-ALT-H to also hide the navbar)</div>
+            <div class="definition"><b>default.png</b> - This is the image that will display if the avatar is not set or
+                is broken. Customize the image so it becomes the default when there is nothing to display. eg. image
+                with company logo or event title, QR code to website, conference speaker schedule, etc. Most likely this
+                image will not be in the rotatation because you should review the avatars for each ENS name. Do this in
+                the "Review Avatars" tab.</div>
+            <div class="definition"><b>background.jpg</b> - This is the image that is used for the background while the
+                slideshow of avatars is running.</div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('keydown', function (event) {
+            if (event.ctrlKey && event.altKey && event.key.toLowerCase() === 'h') {
+                window.parent.postMessage('toggleNavbar', '*');
+            }
+        });
+    </script>
+</body>
+
+</html>

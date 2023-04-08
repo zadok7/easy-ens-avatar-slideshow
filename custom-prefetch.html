@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Pre-Fetched Slideshow from ENS Avatars</title>
+    <style>
+        body,
+        html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            position: relative;
+        }
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            z-index: 0;
+        }
+
+        footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 8px 50px 8px 8px;
+            text-align: right;
+        }
+
+        .ens-label {
+            font-size: 48px;
+            font-weight: bold;
+            color: #4f99ff;
+            text-shadow: 0 0 4px #f4f5f7, 0 0 4px #f4f5f7, 0 0 4px #f4f5f7, 0 0 4px #f4f5f7;
+            font-family: Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+        }
+
+        .instructions {
+            font-size: 18px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #ens-names {
+            width: 80%;
+            height: 200px;
+            margin-bottom: 20px;
+            font-size: 18px;
+            padding: 10px;
+        }
+
+        #start-slideshow-button {
+            cursor: pointer;
+            font-size: 18px;
+            padding: 10px 20px;
+            border: 2px solid #000;
+            background-color: #fff;
+            transition: 0.3s;
+            margin-bottom: 40px;
+        }
+
+        #start-slideshow-button:hover {
+            background-color: #000;
+            color: #fff;
+        }
+
+        .slideshow-background {
+            background-image: url('background.jpg');
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: cover;
+        }
+    </style>
+</head>
+
+<body>
+    <p class="instructions" id="instructions">Paste in a list of ENS names to create an avatar slideshow from, one on each line.</p>
+    <textarea id="ens-names" oninput="updateENSNameCount()"></textarea>
+    <button id="start-slideshow-button" onclick="startAvatarRotation()">Start Avatar Slideshow</button>
+    <p id="ens-names-count"></p>
+
+    <img id="ens-metadata" alt="ENS metadata avatar" style="display: none;">
+    <footer>
+        <span class="ens-label" id="ens-label"></span>
+    </footer>
+
+    <script>
+        async function fetchENSMetadata(ensName) {
+            const url = `https://metadata.ens.domains/mainnet/avatar/${ensName}`;
+
+            try {
+                const response = await fetch(url);
+
+                if (response.headers.get("Content-Type").includes("application/json")) {
+                    const data = await response.json();
+
+                    if (data.message === "There is no avatar set under given address") {
+                        return "default.png";
+                    } else if (data.message === "Error fetching avatar: Provided url or NFT source is broken.") {
+                        return "default.png";
+                    }
+                } else {
+                    const blob = await response.blob();
+                    return URL.createObjectURL(blob);
+                }
+            } catch (error) {
+                console.error('Error fetching ENS metadata:', error);
+            }
+        }
+
+        const prefetchedImages = new Map(); // Stores the prefetched images
+
+        async function prefetchImages(ensNames) {
+            for (const ensName of ensNames) {
+                const imageURL = await fetchENSMetadata(ensName);
+                const image = new Image();
+                image.src = imageURL;
+                prefetchedImages.set(ensName, image);
+            }
+        }
+
+        async function displayENSMetadata(ensNames) {
+            const ensMetadata = document.getElementById('ens-metadata');
+            const ensLabel = document.getElementById('ens-label');
+
+            const randomIndex = Math.floor(Math.random() * ensNames.length);
+            const selectedEnsName = ensNames[randomIndex];
+
+            if (prefetchedImages.has(selectedEnsName)) {
+                ensMetadata.src = prefetchedImages.get(selectedEnsName).src;
+            } else {
+                const imageURL = await fetchENSMetadata(selectedEnsName);
+                ensMetadata.src = imageURL;
+            }
+
+            ensMetadata.style.display = 'block';
+            ensLabel.textContent = selectedEnsName;
+        }
+
+        function scheduleNextRefresh(ensNames) {
+            const now = new Date();
+            const remainingSeconds = 60 - now.getSeconds();
+            const remainingMilliseconds = remainingSeconds * 1000 - now.getMilliseconds();
+            setTimeout(() => {
+                displayENSMetadata(ensNames);
+                scheduleNextRefresh(ensNames);
+            }, remainingMilliseconds);
+        }
+
+        function startAvatarRotation() {
+            const ensNamesTextarea = document.getElementById('ens-names');
+            const ensNames = ensNamesTextarea.value.split('\n').map(name => name.trim()).filter(name => name.length > 0);
+
+            if (ensNames.length > 0) {
+                // Set the count of ENS names
+                document.getElementById('ens-names-count').innerText = `Total ENS Names: ${ensNames.length}`;
+
+                // Hide the textarea, button, and instructions
+                ensNamesTextarea.style.display = 'none';
+                document.getElementById('start-slideshow-button').style.display = 'none';
+                document.getElementById('instructions').style.display = 'none';
+                document.getElementById('ens-names-count').style.display = 'none';
+
+                document.body.classList.add('slideshow-background');
+
+                prefetchImages(ensNames); // Start prefetching images without waiting
+
+                displayENSMetadata(ensNames);
+                scheduleNextRefresh(ensNames);
+            }
+        }
+
+        function updateENSNameCount() {
+            const ensNamesTextarea = document.getElementById('ens-names');
+            const ensNames = ensNamesTextarea.value.split('\n').map(name => name.trim()).filter(name => name.length > 0);
+            document.getElementById('ens-names-count').innerText = `Total ENS Names: ${ensNames.length}`;
+        }
+
+        // Attach event listener to the button
+        document.getElementById('start-slideshow-button').addEventListener('click', startAvatarRotation);
+
+        document.addEventListener('keydown', function (event) {
+            if (event.ctrlKey && event.altKey && event.key.toLowerCase() === 'h') {
+                window.parent.postMessage('toggleNavbar', '*');
+            }
+        });
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ENS Metadata</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            position: relative;
+        }
+
+        img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 10px;
+            display: none;
+        }
+
+        .image-box {
+            width: calc(25% - 20px);
+            max-width: 400px;
+            margin: 10px;
+            text-align: center;
+        }
+
+        .instructions {
+            font-size: 18px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #ens-names {
+            width: 80%;
+            height: 200px;
+            margin-bottom: 20px;
+            font-size: 18px;
+            padding: 10px;
+        }
+
+        #start-review {
+            cursor: pointer;
+            font-size: 18px;
+            padding: 10px 20px;
+            border: 2px solid #000;
+            background-color: #fff;
+            transition: 0.3s;
+            margin-bottom: 40px;
+        }
+
+        #start-review:hover {
+            background-color: #000;
+            color: #fff;
+        }
+
+                body, html, #image-container {
+            min-height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <p class="instructions" id="instructions">Paste in a list of ENS names to review their avatars, one on each line.</p>
+    <textarea id="ens-names" oninput="updateENSNameCount()"></textarea>
+    <button id="start-review">Start Review</button>
+    <p id="ens-names-count"></p>
+    <div class="container" id="image-container"></div>
+
+    <script>
+        async function fetchENSMetadata(ensName) {
+            const url = `https://metadata.ens.domains/mainnet/avatar/${ensName}`;
+
+            try {
+                const response = await fetch(url);
+
+                if (response.headers.get("Content-Type").includes("application/json")) {
+                    const data = await response.json();
+
+                    if (data.message === "There is no avatar set under given address") {
+                        return "placeholder.png";
+                    } else if (data.message === "Error fetching avatar: Provided url or NFT source is broken.") {
+                        return "placeholder2.png";
+                    }
+                } else {
+                    const blob = await response.blob();
+                    return URL.createObjectURL(blob);
+                }
+            } catch (error) {
+                console.error('Error fetching ENS metadata:', error);
+            }
+        }
+
+        async function displayENSMetadata(ensNames) {
+            const container = document.getElementById('image-container');
+            container.innerHTML = '';
+
+            for (const ensName of ensNames) {
+                const imageURL = await fetchENSMetadata(ensName);
+
+                const imageBox = document.createElement('div');
+                imageBox.classList.add('image-box');
+
+                const img = document.createElement('img');
+                img.src = imageURL;
+
+                const label = document.createElement('p');
+                label.textContent = ensName;
+
+                imageBox.appendChild(img);
+                imageBox.appendChild(label);
+
+                container.appendChild(imageBox);
+            }
+        }
+
+        function startReview() {
+            const ensNamesTextarea = document.getElementById('ens-names');
+            const ensNames = ensNamesTextarea.value.split('\n').map(name => name.trim()).filter(name => name.length > 0);
+
+            if (ensNames.length > 0) {
+                // Set the count of ENS names
+                document.getElementById('ens-names-count').innerText = `Total ENS Names: ${ensNames.length}`;
+
+                // Hide the textarea, button, and instructions
+                ensNamesTextarea.style.display = 'none';
+                document.getElementById('start-review').style.display = 'none';
+                document.getElementById('instructions').style.display = 'none';
+                document.getElementById('ens-names-count').style.display = 'none';
+
+                // Show the container
+                document.getElementById('image-container').style.display = 'flex';
+
+                displayENSMetadata(ensNames);
+            }
+        }
+
+        function updateENSNameCount() {
+            const ensNamesTextarea = document.getElementById('ens-names');
+            const ensNames = ensNamesTextarea.value.split('\n').map(name => name.trim()).filter(name => name.length > 0);
+            document.getElementById('ens-names-count').innerText = `Total ENS Names: ${ensNames.length}`;
+        }
+
+        // Attach event listener to the button
+        document.getElementById('start-review').addEventListener('click', startReview);
+
+        // Attach event listener to the textarea
+        document.getElementById('ens-names').addEventListener('input', updateENSNameCount);
+    </script>
+</body>
+</html>
