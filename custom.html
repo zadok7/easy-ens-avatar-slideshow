@@ -39,10 +39,16 @@
 
         .ens-label {
             font-size: 48px;
-            font-weight:700;
+            font-weight: 700;
             color: #4f99ff;
-            text-shadow: 0 0 3px #f4f5f7, 0 0 3px #f4f5f7, 0 0 3px #f4f5f7, 0 0 3px #f4f5f7, 0 0 5px rgba(0, 0, 0, 0.8);
+            background-color: #fff;
+            border-radius: 25px;
+            padding: 5px 15px;
             font-family: Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.15);
+            display: none;
+            /* Hide the ens-label initially */
         }
 
 
@@ -191,7 +197,8 @@
                 document.getElementById('ens-names-count').style.display = 'none';
 
                 document.body.classList.add('slideshow-background');
-
+                // Display the ens-label
+                document.getElementById('ens-label').style.display = 'inline'; // Show the ens-label
                 displayENSMetadata(ensNames);
                 scheduleNextRefresh(ensNames);
             }
