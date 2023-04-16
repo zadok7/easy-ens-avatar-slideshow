@@ -74,7 +74,7 @@
             border: 2px solid #000;
             background-color: #fff;
             transition: 0.3s;
-            margin-bottom: 40px;
+            margin-bottom: 20px;
         }
 
         #start-slideshow-button:hover {
@@ -96,6 +96,10 @@
         each line.</p>
     <textarea id="ens-names" oninput="updateENSNameCount()"></textarea>
     <button id="start-slideshow-button" onclick="startAvatarRotation()">Start Avatar Slideshow</button>
+    <div id="ens-checkbox-container" style="text-align: center; margin-bottom: 10px;">
+        <input type="checkbox" id="show-ens-name" checked>
+        <label for="show-ens-name">Show ENS name</label>
+    </div>
     <p id="ens-names-count"></p>
 
     <img id="ens-metadata" alt="ENS metadata avatar" style="display: none;">
@@ -169,6 +173,7 @@
         function startAvatarRotation() {
             const ensNamesTextarea = document.getElementById('ens-names');
             const ensNames = ensNamesTextarea.value.split('\n').map(name => name.trim()).filter(name => name.length > 0);
+            const showEnsNameCheckbox = document.getElementById('show-ens-name'); // Add this line
 
             if (ensNames.length > 0) {
                 // Set the count of ENS names
@@ -183,8 +188,17 @@
                 document.body.classList.add('slideshow-background');
 
                 prefetchImages(ensNames); // Start prefetching images without waiting
-                // Display the ens-label
-                document.getElementById('ens-label').style.display = 'inline'; // Show the ens-label
+
+                document.getElementById('ens-checkbox-container').style.display = 'none';
+
+                document.body.classList.add('slideshow-background');
+
+                // Display the ens-label based on the checkbox state
+                if (showEnsNameCheckbox.checked) {
+                    document.getElementById('ens-label').style.display = 'inline'; // Show the ens-label
+                } else {
+                    document.getElementById('ens-label').style.display = 'none'; // Hide the ens-label
+                }
                 displayENSMetadata(ensNames);
                 scheduleNextRefresh(ensNames);
             }
