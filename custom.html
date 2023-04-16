@@ -110,8 +110,7 @@
 
     <script>
         async function fetchENSMetadata(ensName) {
-            const url = `https://metadata.ens.domains/mainnet/avatar/${ensName}`;
-
+            const url = `https://metadata.ens.domains/mainnet/avatar/${ensName}?timestamp=${Date.now()}`;
             try {
                 const response = await fetch(url);
 
@@ -172,15 +171,16 @@
             nextImageURL = await fetchENSMetadata(nextEnsName);
         }
 
-
         function scheduleNextRefresh(ensNames) {
+            // Calculate the remaining time until the next full minute
             const now = new Date();
             const remainingSeconds = 60 - now.getSeconds();
-            const remainingMilliseconds = remainingSeconds * 1000 -
-                now.getMilliseconds();
+            const remainingMilliseconds = remainingSeconds * 1000 - now.getMilliseconds();
+
+            // Call displayENSMetadata() after the remaining time and then every minute
             setTimeout(() => {
                 displayENSMetadata(ensNames);
-                scheduleNextRefresh(ensNames);
+                setInterval(() => displayENSMetadata(ensNames), 60 * 1000);
             }, remainingMilliseconds);
         }
 
